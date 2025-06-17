@@ -1,7 +1,7 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/core";
+import { useState } from "react";
 import "./App.css";
+import reactLogo from "./assets/react.svg";
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
@@ -13,10 +13,10 @@ function App() {
   }
 
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
+    <main className="flex flex-col justify-center items-center">
+      <h1 className="text-center">Welcome to Tauri + React</h1>
 
-      <div className="row">
+      <div className="flex justify-center items-center">
         <a href="https://vitejs.dev" target="_blank">
           <img src="/vite.svg" className="logo vite" alt="Vite logo" />
         </a>
@@ -30,7 +30,7 @@ function App() {
       <p>Click on the Tauri, Vite, and React logos to learn more.</p>
 
       <form
-        className="row"
+        className="flex justify-center"
         onSubmit={(e) => {
           e.preventDefault();
           greet();
@@ -38,12 +38,13 @@ function App() {
       >
         <input
           id="greet-input"
+          className="input"
           onChange={(e) => setName(e.currentTarget.value)}
           placeholder="Enter a name..."
         />
-        <button type="submit">Greet</button>
+        <button className="btn" type="submit">Greet</button>
       </form>
-      <p>{greetMsg}</p>
+      <p className="mt-4">{greetMsg}</p>
     </main>
   );
 }
