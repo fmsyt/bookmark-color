@@ -7,9 +7,18 @@ function App() {
 	const [greetMsg, setGreetMsg] = useState("");
 	const [name, setName] = useState("");
 
+	const [point, setPoint] = useState({
+		x: 0,
+		y: 0,
+	});
+
 	async function greet() {
 		// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 		setGreetMsg(await invoke("greet", { name }));
+	}
+
+	async function getPoint() {
+		setPoint(await invoke("get_point"));
 	}
 
 	return (
@@ -47,6 +56,15 @@ function App() {
 				</button>
 			</form>
 			<p className="mt-4">{greetMsg}</p>
+
+			<div className="flex flex-col items-center mt-4">
+				<button className="btn" onClick={getPoint}>
+					Get Point
+				</button>
+				<p className="mt-2">
+					Point: {point.x}, {point.y}
+				</p>
+			</div>
 		</main>
 	);
 }
