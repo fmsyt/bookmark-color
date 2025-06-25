@@ -3,7 +3,7 @@
 mod ipc;
 mod picker;
 
-use crate::ipc::{get_point, greet};
+use crate::ipc::{get_point, greet, pick_colors};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -12,6 +12,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             greet,
             get_point,
+            pick_colors,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

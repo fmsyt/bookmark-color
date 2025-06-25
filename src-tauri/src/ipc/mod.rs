@@ -11,6 +11,12 @@ pub fn get_point() -> Option<Point> {
     point
 }
 
+#[tauri::command]
+pub fn pick_colors(p1: Point, p2: Point) -> Vec<picker::RGB> {
+    let list = picker::pick_colors(p1, p2);
+    list.unwrap_or_default()
+}
+
 mod test {
     use super::*;
 

@@ -1,72 +1,123 @@
 import { invoke } from "@tauri-apps/api/core";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import reactLogo from "./assets/react.svg";
 
 function App() {
-	const [greetMsg, setGreetMsg] = useState("");
-	const [name, setName] = useState("");
+  const [greetMsg, setGreetMsg] = useState("");
+  const [name, setName] = useState("");
 
-	const [point, setPoint] = useState({
-		x: 0,
-		y: 0,
-	});
+  const [pickMargin, setPickMargin] = useState(2);
 
-	async function greet() {
-		// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-		setGreetMsg(await invoke("greet", { name }));
-	}
+  const [point, setPoint] = useState({
+    x: 0,
+    y: 0,
+  });
 
-	async function getPoint() {
-		setPoint(await invoke("get_point"));
-	}
+  const [colors, setColors] = useState<[number, number, number][]>([]);
 
-	return (
-		<main className="flex flex-col justify-center items-center">
-			<h1 className="text-center">Welcome to Tauri + React</h1>
+  async function greet() {
+    setGreetMsg(await invoke("greet", { name }));
+  }
 
-			<div className="flex justify-center items-center">
-				<a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-					<img src="/vite.svg" className="logo vite" alt="Vite logo" />
-				</a>
-				<a href="https://tauri.app" target="_blank" rel="noreferrer">
-					<img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-				</a>
-				<a href="https://reactjs.org" target="_blank" rel="noreferrer">
-					<img src={reactLogo} className="logo react" alt="React logo" />
-				</a>
-			</div>
-			<p>Click on the Tauri, Vite, and React logos to learn more.</p>
+  async function getPoint() {
+    setPoint(await invoke("get_point"));
+  }
 
-			<form
-				className="flex justify-center"
-				onSubmit={(e) => {
-					e.preventDefault();
-					greet();
-				}}
-			>
-				<input
-					id="greet-input"
-					className="input"
-					onChange={(e) => setName(e.currentTarget.value)}
-					placeholder="Enter a name..."
-				/>
-				<button className="btn" type="submit">
-					Greet
-				</button>
-			</form>
-			<p className="mt-4">{greetMsg}</p>
+  // 1秒ごとにpick_colorsを呼び出す
+  useEffect(() => {
+    const timer = setInterval(async () => {
+      try {
+        const point = await invoke("get_point") as { x: number; y: number };
 
-			<div className="flex flex-col items-center mt-4">
-				<button className="btn" onClick={getPoint}>
-					Get Point
-				</button>
-				<p className="mt-2">
-					Point: {point.x}, {point.y}
-				</p>
-			</div>
-		</main>
-	);
+        const p1 = { x: point.x - pickMargin, y: point.y - pickMargin };
+        const p2 = { x: point.x + pickMargin, y: point.y + pickMargin };
+        const res = await invoke("pick_colors", { p1, p2 });
+
+        setColors(res as any[]);
+      } catch (e) {
+        setColors([]);
+      }
+    }, 50);
+    return () => {
+      clearInterval(timer);
+    };
+
+  }, [pickMargin]);
+
+  return (
+    <main className="flex flex-col justify-center items-center">
+      <h1 className="text-center">Welcome to Tauri + React</h1>
+
+      <div className="flex justify-center items-center">
+        <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
+          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
+        </a>
+        <a href="https://tauri.app" target="_blank" rel="noreferrer">
+          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
+        </a>
+        <a href="https://reactjs.org" target="_blank" rel="noreferrer">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
+      </div>
+      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
+
+      <form
+        className="flex justify-center"
+        onSubmit={(e) => {
+          e.preventDefault();
+          greet();
+        }}
+      >
+        <input
+          id="greet-input"
+          className="input"
+          onChange={(e) => setName(e.currentTarget.value)}
+          placeholder="Enter a name..."
+        />
+        <button className="btn" type="submit">
+          Greet
+        </button>
+      </form>
+      <p className="mt-4">{greetMsg}</p>
+
+      <div className="flex flex-col items-center mt-4">
+        <button className="btn" onClick={getPoint}>
+          Get Point
+        </button>
+        <p className="mt-2">
+          Point: {point.x}, {point.y}
+        </p>
+      </div>
+
+      <div className="flex flex-col items-center mt-4">
+        <p>pick_colors response ({colors.length} colors):</p>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${pickMargin * 2 + 1}, 1fr)`,
+            gridTemplateRows: `repeat(${pickMargin * 2 + 1}, 1fr)`,
+            gap: "2px",
+          }}
+        >
+          {colors.map((color, index) => (
+            <div
+              key={index}
+              className="color-box"
+              style={{
+                backgroundColor: `rgb(${color[0]}, ${color[1]}, ${color[2]})`,
+                width: "1em",
+                height: "1em"
+              }}
+            >
+            </div>
+          ))}
+
+        </div>
+      </div>
+    </main>
+  );
 }
 
 export default App;
