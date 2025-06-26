@@ -16,13 +16,19 @@ function App() {
   });
 
   const [colors, setColors] = useState<[number, number, number][]>([]);
+  const [getPointError, setGetPointError] = useState("");
 
   async function greet() {
     setGreetMsg(await invoke("greet", { name }));
   }
 
   async function getPoint() {
-    setPoint(await invoke("get_point"));
+    try {
+      setPoint(await invoke("get_point"));
+    } catch (error) {
+      console.error("Error invoking get_point:", error);
+      setGetPointError("Failed to get point. Check the console for details.");
+    }
   }
 
   // 1秒ごとにpick_colorsを呼び出す
@@ -94,11 +100,20 @@ function App() {
       <div className="flex flex-col items-center mt-4">
         <p>pick_colors response ({colors.length} colors):</p>
 
-        <ColorMatrix
-          colors={colors}
-          gap="2px"
-          cellSize="1em"
-        />
+        <div
+          className="w-30 h-30"
+        >
+          <ColorMatrix
+            colors={colors}
+            gap="2px"
+          />
+        </div>
+        {Boolean(getPointError) && (
+          <p className="text-red-500 mt-2">
+            Error: {getPointError}
+          </p>
+        )}
+
       </div>
     </main>
   );

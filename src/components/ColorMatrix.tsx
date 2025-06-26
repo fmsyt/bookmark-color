@@ -3,7 +3,10 @@ type RGB = [number, number, number];
 export type ColorMatrixProps = {
   colors: RGB[];
   gap?: number | string;
-  cellSize?: number | string;
+  width?: number | string;
+  height?: number | string;
+  minWidth?: number | string;
+  minHeight?: number | string;
 };
 
 export default function ColorMatrix(props: ColorMatrixProps) {
@@ -17,6 +20,10 @@ export default function ColorMatrix(props: ColorMatrixProps) {
         gridTemplateColumns: `repeat(${sideLength}, 1fr)`,
         gridTemplateRows: `repeat(${sideLength}, 1fr)`,
         gap: props.gap || "2px",
+        width: props.width || "100%",
+        height: props.height || "100%",
+        minWidth: props.minWidth || "20px",
+        minHeight: props.minHeight || "20px",
       }}
     >
       {props.colors.map(([r, g, b], index) => (
@@ -25,8 +32,6 @@ export default function ColorMatrix(props: ColorMatrixProps) {
           className="color-box"
           style={{
             backgroundColor: `rgb(${r}, ${g}, ${b})`,
-            width: props.cellSize || "1em",
-            height: props.cellSize || "1em"
           }}
         ></div>
       ))}
