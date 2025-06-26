@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import "./App.css";
 import reactLogo from "./assets/react.svg";
+import ColorMatrix from "./components/ColorMatrix";
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
@@ -93,28 +94,11 @@ function App() {
       <div className="flex flex-col items-center mt-4">
         <p>pick_colors response ({colors.length} colors):</p>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${pickMargin * 2 + 1}, 1fr)`,
-            gridTemplateRows: `repeat(${pickMargin * 2 + 1}, 1fr)`,
-            gap: "2px",
-          }}
-        >
-          {colors.map((color, index) => (
-            <div
-              key={index}
-              className="color-box"
-              style={{
-                backgroundColor: `rgb(${color[0]}, ${color[1]}, ${color[2]})`,
-                width: "1em",
-                height: "1em"
-              }}
-            >
-            </div>
-          ))}
-
-        </div>
+        <ColorMatrix
+          colors={colors}
+          gap="2px"
+          cellSize="1em"
+        />
       </div>
     </main>
   );
