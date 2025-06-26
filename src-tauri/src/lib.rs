@@ -2,8 +2,9 @@
 
 mod ipc;
 mod picker;
+mod event;
 
-use crate::ipc::{get_point, greet, pick_colors};
+use crate::ipc::{get_point, greet, pick_colors, start_mouse_hook, stop_mouse_hook, is_mouse_hook_running, get_mouse_events};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -13,6 +14,10 @@ pub fn run() {
             greet,
             get_point,
             pick_colors,
+            start_mouse_hook,
+            stop_mouse_hook,
+            is_mouse_hook_running,
+            get_mouse_events,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
