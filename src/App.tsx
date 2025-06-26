@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import reactLogo from "./assets/react.svg";
 import ColorMatrix from "./components/ColorMatrix";
-import { ColorPickerProvider, useColorPicker } from "./lib/picker";
+import { ColorPickerProvider, PickedColor, useColorPicker } from "./lib/picker";
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
@@ -126,7 +126,7 @@ function App() {
 
 function Inner() {
   const context = useColorPicker();
-  const { watching, startWatching, stopWatching, error } = context;
+  const { watching, startWatching, stopWatching, error, pickedColor } = context;
 
   return (
     <div>
@@ -134,6 +134,8 @@ function Inner() {
       <button className="btn" onClick={watching ? stopWatching : startWatching}>
         {watching ? "Stop Watching" : "Start Watching"}
       </button>
+
+      <pre>{JSON.stringify(pickedColor, null, 2)}</pre>
     </div>
   )
 

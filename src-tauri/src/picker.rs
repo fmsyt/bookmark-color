@@ -78,9 +78,8 @@ pub fn pick_colors(start: Point, end: Point) -> Option<Vec<RGB>> {
     unsafe {
         use winapi::um::winuser::{GetDC, ReleaseDC, GetDesktopWindow};
         use winapi::um::wingdi::{CreateCompatibleDC, CreateCompatibleBitmap, SelectObject, BitBlt, GetDIBits, SRCCOPY, BITMAPINFO, BITMAPINFOHEADER, DIB_RGB_COLORS};
-        use winapi::shared::windef::{HWND, HBITMAP};
-        use winapi::shared::minwindef::{DWORD, UINT, BYTE};
-        use std::ptr;
+        use winapi::shared::windef::HWND;
+        use winapi::shared::minwindef::{DWORD, UINT};
         use std::mem;
 
         let hwnd: HWND = GetDesktopWindow();

@@ -1,8 +1,9 @@
-use crate::picker::Point;
+use crate::picker::{Point, RGB, pick_color};
 use std::sync::{Arc, Mutex};
 use std::collections::VecDeque;
 use serde::{Serialize, Deserialize};
 
+use tauri::{AppHandle, Manager, Emitter};
 #[cfg(windows)]
 use winapi::{
     shared::{
@@ -52,6 +53,17 @@ unsafe impl Sync for Watcher {}
 #[cfg(windows)]
 static mut GLOBAL_EVENTS: Option<Arc<Mutex<VecDeque<MouseClickEvent>>>> = None;
 
+#[cfg(windows)]
+static mut GLOBAL_APP_HANDLE: Option<Arc<Mutex<Option<AppHandle>>>> = None;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmitMouseClickEvent {
+    pub x: i32,
+    pub y: i32,
+    pub button: MouseButton,
+    pub rgb: Option<RGB>,
+}
+
 impl Watcher {
     pub fn new() -> Self {
         Watcher {
@@ -65,11 +77,11 @@ impl Watcher {
         }
     }
 
-    pub fn start(&mut self) {
+    pub fn start(&mut self, app: AppHandle) {
         #[cfg(windows)]
         {
             if self.hook_handle.is_none() {
-                self.start_hook_mouse_click();
+                self.start_hook_mouse_click(app);
             }
         }
     }
@@ -104,7 +116,7 @@ impl Watcher {
         result
     }
 
-    pub fn start_hook_mouse_click(&mut self) {
+    pub fn start_hook_mouse_click(&mut self, app: AppHandle) {
         #[cfg(windows)]
         unsafe {
             if self.hook_handle.is_some() {
@@ -114,8 +126,9 @@ impl Watcher {
 
             println!("[マウスフック] フック開始処理を実行中...");
 
-            // グローバル変数にイベントキューの参照を設定
+            // グローバル変数にイベントキューとAppHandleの参照を設定
             GLOBAL_EVENTS = Some(Arc::clone(&self.events));
+            GLOBAL_APP_HANDLE = Some(Arc::new(Mutex::new(Some(app))));
 
             let hook = SetWindowsHookExW(
                 WH_MOUSE_LL,
@@ -141,20 +154,12 @@ impl Watcher {
                 UnhookWindowsHookEx(hook);
                 self.hook_handle = None;
                 GLOBAL_EVENTS = None;
+                GLOBAL_APP_HANDLE = None;
                 println!("[マウスフック] フック停止完了！マウス監視を終了しました");
             } else {
                 println!("[マウスフック] フックが開始されていないため停止をスキップ");
             }
         }
-    }
-
-    fn make_handler<F>(&mut self)
-    where
-        F: FnMut(MouseClickEvent) + Send + 'static,
-    {
-        // SetWindowsHookExW を使って、クリックされたときのカーソル位置取得する関数を返す
-        // この実装は上記のstart_hook_mouse_clickメソッドで完了している
-        // カスタムハンドラーが必要な場合は、この関数を拡張可能
     }
 }
 
@@ -189,12 +194,49 @@ unsafe extern "system" fn low_level_mouse_proc(
             // グローバルイベントキューにイベントを追加
             if let Some(ref events) = GLOBAL_EVENTS {
                 if let Ok(mut queue) = events.lock() {
-                    queue.push_back(event);
+                    queue.push_back(event.clone());
                     // キューサイズを制限（メモリリーク防止）
                     if queue.len() > 1000 {
                         queue.pop_front();
                     }
                     println!("[マウスフック] イベントキューサイズ: {}", queue.len());
+                }
+            }
+
+            // AppHandleを使用した処理（例：フロントエンドへのイベント送信）
+            if let Some(ref app_handle_arc) = GLOBAL_APP_HANDLE {
+                if let Ok(app_handle_lock) = app_handle_arc.lock() {
+                    if let Some(ref app_handle) = *app_handle_lock {
+                        // AppHandleを使用した例：基本的なTauri機能
+
+                        println!("[マウスフック] AppHandleが利用可能になりました");
+
+                        // TODO: Tauri v2のイベントAPIを使用したい場合は以下のようなパターンを検討
+                        // let _ = app_handle.emit_to("main", "mouse-click", &event);
+
+                        // ウィンドウ操作（main window取得）
+                        if let Some(window) = app_handle.get_webview_window("main") {
+
+                            let rgb = pick_color(point);
+                            let data: EmitMouseClickEvent = EmitMouseClickEvent {
+                                x: point.x,
+                                y: point.y,
+                                button: button.clone(),
+                                rgb,
+                            };
+
+
+                            window.emit("mouse-click", data)
+                                .expect("[マウスフック] イベント送信に失敗しました");
+                        }
+
+                        // AppHandleから利用可能な主要機能:
+                        // - app_handle.path() - パス関連操作
+                        // - app_handle.state::<T>() - アプリ状態管理
+                        // - app_handle.manage() - 状態の登録
+                        // - app_handle.get_webview_window() - ウィンドウ取得
+                        // など多数のTauri機能が利用可能
+                    }
                 }
             }
         }

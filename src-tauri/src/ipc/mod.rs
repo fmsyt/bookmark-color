@@ -1,3 +1,5 @@
+use tauri::AppHandle;
+
 use crate::picker::{self, Point};
 use crate::event::{Watcher, MouseClickEvent};
 use std::sync::{Arc, Mutex, OnceLock};
@@ -29,10 +31,10 @@ pub fn pick_colors(p1: Point, p2: Point) -> Vec<picker::RGB> {
 }
 
 #[tauri::command]
-pub fn start_mouse_hook() -> bool {
+pub fn start_mouse_hook(app: AppHandle) -> bool {
     let watcher = get_watcher();
     let mut w = watcher.lock().unwrap();
-    w.start();
+    w.start(app);
     w.is_running()
 }
 
