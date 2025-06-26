@@ -7,7 +7,10 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "include": ["./*.{js,ts,json,md}", "src/**/*.{js,ts,json,md}"],
+    "include": [
+      "./*.{js,ts,json,md}",
+      "src/**/*.{js,jsx,ts,tsx,json,md}"
+    ],
     "ignore": []
   },
   "formatter": {
