@@ -98,6 +98,9 @@ impl Watcher {
     pub fn get_events(&self) -> Vec<MouseClickEvent> {
         let mut events = self.events.lock().unwrap();
         let result: Vec<_> = events.drain(..).collect();
+        if !result.is_empty() {
+            println!("[マウスフック] {}個のイベントを取得しました", result.len());
+        }
         result
     }
 
@@ -105,8 +108,11 @@ impl Watcher {
         #[cfg(windows)]
         unsafe {
             if self.hook_handle.is_some() {
+                println!("[マウスフック] 既にフック中のため開始をスキップ");
                 return; // 既にフック中
             }
+
+            println!("[マウスフック] フック開始処理を実行中...");
 
             // グローバル変数にイベントキューの参照を設定
             GLOBAL_EVENTS = Some(Arc::clone(&self.events));
@@ -120,6 +126,9 @@ impl Watcher {
 
             if !hook.is_null() {
                 self.hook_handle = Some(hook);
+                println!("[マウスフック] フック開始成功！マウスクリックの監視を開始しました");
+            } else {
+                println!("[マウスフック] エラー: フック開始に失敗しました");
             }
         }
     }
@@ -128,9 +137,13 @@ impl Watcher {
         #[cfg(windows)]
         unsafe {
             if let Some(hook) = self.hook_handle {
+                println!("[マウスフック] フック停止処理を実行中...");
                 UnhookWindowsHookEx(hook);
                 self.hook_handle = None;
                 GLOBAL_EVENTS = None;
+                println!("[マウスフック] フック停止完了！マウス監視を終了しました");
+            } else {
+                println!("[マウスフック] フックが開始されていないため停止をスキップ");
             }
         }
     }
@@ -167,7 +180,11 @@ unsafe extern "system" fn low_level_mouse_proc(
                 y: hook_struct.pt.y,
             };
 
-            let event = MouseClickEvent { button, point };
+            let event = MouseClickEvent { button: button.clone(), point };
+
+            // STDOUTにクリックイベントをログ出力
+            println!("[マウスフック] {:?}ボタンクリック検知: 座標({}, {})",
+                     button, point.x, point.y);
 
             // グローバルイベントキューにイベントを追加
             if let Some(ref events) = GLOBAL_EVENTS {
@@ -177,6 +194,7 @@ unsafe extern "system" fn low_level_mouse_proc(
                     if queue.len() > 1000 {
                         queue.pop_front();
                     }
+                    println!("[マウスフック] イベントキューサイズ: {}", queue.len());
                 }
             }
         }
