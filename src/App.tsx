@@ -35,6 +35,9 @@ function App() {
 
   // 1秒ごとにpick_colorsを呼び出す
   useEffect(() => {
+
+    return;
+
     const timer = setInterval(async () => {
       try {
         const point = await invoke("get_point") as { x: number; y: number };
