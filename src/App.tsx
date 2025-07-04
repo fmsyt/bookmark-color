@@ -2,8 +2,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import "./App.css";
 import reactLogo from "./assets/react.svg";
+import ColorCircle from "./components/ColorCircle";
 import ColorMatrix from "./components/ColorMatrix";
-import { ColorPickerProvider, PickedColor, useColorPicker } from "./lib/picker";
+import { ColorPickerProvider, useColorPicker } from "./lib/picker";
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
@@ -117,6 +118,8 @@ function App() {
           )}
 
           <Inner />
+
+          <ColorCircle size="200px" />
 
         </div>
       </main>
